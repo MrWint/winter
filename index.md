@@ -1,8 +1,7 @@
 ---
-layout: page
+layout: base
+title: The Games: Winter Challenge - GOG is selling a broken game
 ---
-
-# The Games: Winter Challenge - GOG is selling a broken game
 
 > This is a summary of what the game is and how it is broken. If you want all the gory technical details, you can find them in the [detailed write-up](writeup/writeup.md).
 > If you just want to fix your copy of the game, you can use the [online patcher](patcher/index.html).
