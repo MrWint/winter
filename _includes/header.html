@@ -3,7 +3,7 @@
     function reloadAnimations(ev) {
         ev.preventDefault();
         const images = document.getElementsByTagName("img");
-        for(let i=0; i<links.length; i++) {
+        for(let i=0; i<images.length; i++) {
             const originalSrc = images[i].src;
             images[i].src = "";
             requestAnimationFrame(() => { images[i].src = originalSrc; })
