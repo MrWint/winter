@@ -1,1 +1,21 @@
 <!-- Intentionally left empty -->
+<script>
+    function reloadAnimations(ev) {
+        ev.preventDefault();
+        const images = document.getElementsByTagName("img");
+        for(let i=0; i<links.length; i++) {
+            const originalSrc = images[i].src;
+            images[i].src = "";
+            requestAnimationFrame(() => { images[i].src = originalSrc; })
+        }
+    }
+
+    addEventListener("DOMContentLoaded", (event) => {
+        const links = document.getElementsByTagName("a");
+        for(let i=0; i<links.length; i++) {
+            if (!links[i].href) {
+                links[i].addEventListener("click", reloadAnimations, false);
+            }
+        }
+    });
+</script>
