@@ -142,7 +142,7 @@ That is useful because it allows multiple overlays to be loaded at the same time
 ## Extracting the resources
 
 Statically reverse-engineering the overlay manager routine turned out to be a very time-consuming endeavor, but luckily there were still some hints that can help us take some shortcuts.
-The DOS emulator DOSBox-X is a fork of DOSBox, and has additional useful debugging features, including logging of all file IO, and all `int 21h` interrupts.
+The DOS emulator [DOSBox-X](https://dosbox-x.com/) is a fork of DOSBox, and has additional useful debugging features, including logging of all file IO, and all `int 21h` interrupts.
 Watching those while the game starts up reveals that the game is seeking through the binary to specific locations, which happen to be directly after the bytes of the main program, and then reading many chunks of 22 bytes each.
 
     ...
@@ -162,7 +162,7 @@ Watching those while the game starts up reveals that the game is seeking through
     4205455 DEBUG FILES:Reading 22 bytes from WINTER.EXE 
     ...
 
-These are likely the start of the resources, and checking they begin with two bytes spelling out `MB`, similar to how the executables themselves start with an `MZ` magic number.
+These are likely the start of the resources, and when checking the binary at that location we find that the secion begins with two bytes spelling out `MB`, similar to how the executables themselves start with an `MZ` magic number.
 Looking for this magic number in the disassembly brings us directly to the routine which parses out the structure of the embedded resources.
 
     seg000:6D83                 sub     ax, ax                                 ; sets ax to 0
@@ -209,7 +209,8 @@ Looking for this magic number in the disassembly brings us directly to the routi
 >
 > [Segments](https://en.wikipedia.org/wiki/Memory_segmentation) are chunks of memory, at most 64kB in size, which were typically assigned different roles: there are typically one or multiple code segments holding the program code, a data segment holding the work memory for any data the program stores, and a stack segment to hold the values which are put on the stack.
 > Those segments can be considered independent parts of the memory, and to interact with something from another segment, you would need a far pointer, consisting of both a segment and offset within that segment, whereas for referencing something within a segment a near pointer using only the offset is sufficient.
-> Under the hood, the memory is still one linear chunk, and the resulting memory address of a far pointer is simply segment * 16 + offset.
+>
+> Under the hood, the memory is still one linear chunk, and the resulting memory address of a far pointer is simply `segment * 16 + offset`.
 > That means segments can technically overlap with different segment-offset pairs pointing to the same physical address, but conventionally they were chosen to be distinct blocks.
 
 The resources are all tabulated in a simple header structure, in entries of 22 bytes each.
@@ -268,6 +269,8 @@ It's difficult to imagine nowadays, but hard drive space was a serious concern b
 However, it seems that even in the fast-loading versions, not all assets are actually uncompressed.
 Specifically some of the code overlays stay packed even there, presumably as a means to keep them obfuscated even when fast loading is selected during installation.
 However, through disassembly we already know where the resources are loaded now, so using a debugger with appropriate breakpoints, we can easily dump the uncompressed versions for these as well out of the program memory, without needing to understand how the compression of the resources actually works.
+(If you are still curious how the compression works, I did end up disassembling it to find that it's a surprisingly sophisticated custom variant of [DEFLATE](https://en.wikipedia.org/wiki/Deflate) compression.
+You can find a JS re-implementation of it [here](https://github.com/MrWint/winter/blob/70da5ba230a2161955d2fb9094f3d47bdea46026/patcher/patcher.js#L79).)
 
 Conveniently, the game also provides us with a fairly easy way to check whether we extracted all the resources correctly.
 It turns out the game is more flexible with where it tries to load the resources from, and not only checks the embedded resources in the binary, but also checks for individual files of the same name, in the root folder or a subfolder called "ART".
@@ -437,8 +440,8 @@ Here, the game also starts throwing misdirections at us to make deciphering it h
     seg010:0059                 retn                    ; because of the changed return address, it will skip the instructions at seg010:000E and seg010:0011 after returning!
 
 
-This is a very misleading piece of code that would make any malware developer jealous.
-At first glance, it appears to read the current time and process it, and then write a constant `4A52h` to cx and later into `debugger_check_result_4E62A`.
+This is a **very misleading** piece of code that would make any malware developer jealous.
+At first glance, it appears to read the current time and process it, and then write a constant `4A52h` to register cx and later into `debugger_check_result_4E62A`.
 However, the `process_current_time_result` does some weird things instead.
 For one, most of the operations (I marked them with question marks) don't actually contribute anything, they are purely there to confuse you.
 The operation that actually matters and is trying to hide is the modification of the base pointer at `seg010:003F`.
@@ -509,7 +512,7 @@ That was the appetizer though, the main course is still to come and it's a doozy
 
 ## The code wheel check - A honey pot for crackers
 
-The code wheel protection is in principle less technical and more straight forward: The game reads the number you enter, it then looks up what the answer should have been, and checks whether they match.
+The code wheel protection is in principle less technical and more straight-forward: The game reads the number you enter, it then looks up what the answer should have been, and checks whether they match.
 Thanks to our fully unpacked executable, finding where this check is made is as simple as finding the error message ("That ticket number is incorrect.  Try again.") in the binary, and looking for references to it, places in the code where it is used.
 Placing debugger breakpoints on this function and stepping through it lets us identfy which sections are roughly responsible for which parts of the process.
 
@@ -601,7 +604,7 @@ Those 5 memory locations are where it gets interesting, because looking at where
     seg015:0089                 pop     si
     seg015:008A                 retf
 
-In this code snippet, the 5 copies of the ticked number are modified in various ways to create 6 new values derived from it, with some arbitrary opertaions to make them all different.
+In this code snippet, the 5 copies of the ticket number are modified in various ways to create 6 new values derived from it, with some arbitrary opertaions to make them all different.
 Each of these six values is used some specific place elsewhere in the code, where it is compared against some reference value.
 If we try to find out where those reference values come from, what we find it a second copy of the code wheel answer checking routine from above, complete with a second instance of the table containing all correct answers!
 The only difference between the two is that is uses a different value to xor the ticket numbers with, using `0xc514` instead of `0xa283`.
@@ -994,7 +997,7 @@ The second case is for the main anti-debugger check, hooking the interrupt that 
 The remaining three all deal with the code wheel check.
 The third case hooks the interrupt that is called when the code wheel dialog is being opened, and sets `si` to 1 which will simulate confirming the dialog instantly.
 The fourth case is just a helper, it hooks the next interrupt after the dialog is closed, and overrides two bytes at the end of the routine that checks the provided input to inject an artificial `int 3f` instruction there.
-This is not actually a valid overlay interrupt, it is only use as a place for the fifth case to hook into, because there are no other interrupts to hook into in that function.
+This is not actually a valid overlay interrupt, it is only used as a place for the fifth case to hook into, because there are no other interrupts to hook into in that function.
 
 So finally, the last case is where the code wheel check is actually defeated.
 It hooks at the end of the input checking routine, after the game has computed the expected result to compare the input against, and it overrides all 5 copies of the ticket number with the correct value the game expects, then pretends the comparison was successful.
@@ -1008,7 +1011,7 @@ With this, the game's copy protection is completely defeated, with no adverse ef
 ## Help, I have a broken version of the game!
 
 In case you have bought this game from GOG or have one of the many other broken versions out there, I have created a tool to fix the game for you.
-You can go [here](patcher/index.html) and use the tool to patch your binary to remove the hidden copy protection checks (as well as the debugger and code wheel checks themselves in case they are not removed already), so you can enjoy this game without any limitations.
+You can go [here](https://mrwint.github.io/winter/patcher/index.html) and use the tool to patch your binary to remove the hidden copy protection checks (as well as the debugger and code wheel checks themselves in case they are not removed already), so you can enjoy this game without any limitations.
 
 
 ## Conclusion - What about creating the perfect ski jump?

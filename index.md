@@ -14,7 +14,7 @@ The DOS version uses a [code wheel](https://www.oldgames.sk/codewheel/games-wint
 
 ![Screen shot of the code wheel input in-game](writeup/winter_code_wheel_input.png)
 
-However, this game is extra sneaky and does additional **hidden copy protection checks** not only checks for the code wheel answer when this screen appears, but also in various places throughout the game.
+However, this game is extra sneaky and does additional **hidden copy protection checks** which not only check for the code wheel answer when this screen appears, but also in various places throughout the game.
 If it detects that you did not correctly answer the code wheel, e.g. by modifying the game to skip over it, it would alter the game in subtle ways to mess with your illegitimate play session in varying amusing and frustrating ways.
 
 As it turns out, **all widely available versions of this game are improperly cracked this way and trigger these hidden copy protection checks, including the version you can [buy on GOG](https://www.gog.com/en/game/summer_winter_olympic_challenge), as well as all the various online playable or downloadable versions.**.
