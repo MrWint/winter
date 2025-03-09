@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>The Games: Winter Challenge and Summer Challenge - Executable patcher</title>
+    <meta http-equiv="content-Type" content="text/html; charset=UTF-8" />
+    <meta name="description"
+        content="An online patcher to properly remove copy protections from The Games: Winter Challenge and Summer Challenge." />
+    <meta name="keywords" content="winter,summer,challenge,patch" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+        td {
+            padding: 10px;
+        }
+        body {
+            background-color: #202224;
+            color: #EEE;
+            font-size: 14px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        a {
+            text-decoration: none;
+            color: #30A2EC;
+        }
+        a:visited {
+            color: #30A2EC;
+        }
+        .logSuccess {
+            background-color: #363;
+        }
+        .logError {
+            background-color: #633;
+        }
+    </style>
+
+    <script type="text/javascript" src="./patcher.js"></script>
+</head>
+
+<body style="height: 100vh; margin: 0;">
+    <div style="display: flex; flex-direction: column; width: 100%; height: 100%;">
+        <div style="flex: 1;"></div>
+        <div style="flex: 1; flex-grow: 0; text-align: center; max-width: 450px; margin: 0 auto; padding: 0 32px; background-color: #303336;">
+            <h1 style="font-size: 24px;">The Games: Winter Challenge and Summer Challenge - Executable patcher</h1>
+
+            <p>
+                This tool removes the hidden copy protection measures and fixes up improperly cracked versions of these games.
+            </p>
+            <p>
+                See <a href="https://mrwint.github.io/winter">here</a> for background on why this is needed.
+            </p>
+
+            <div onchange="handleFileInputChange(event)" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);" style="background-color: #404448; max-width: 280px; margin: 0 auto;">
+                <input type="file" id="patcher-input-file" style="display: none;" />
+                <label for="patcher-input-file" style="display: block; padding: 0 30px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="50" height="43" viewBox="0 0 50 43" style="padding: 16px; fill: #EEE">
+                        <path d="M48.4 26.5c-.9 0-1.7.7-1.7 1.7v11.6h-43.3v-11.6c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v13.2c0 .9.7 1.7 1.7 1.7h46.7c.9 0 1.7-.7 1.7-1.7v-13.2c0-1-.7-1.7-1.7-1.7zm-24.5 6.1c.3.3.8.5 1.2.5.4 0 .9-.2 1.2-.5l10-11.6c.7-.7.7-1.7 0-2.4s-1.7-.7-2.4 0l-7.1 8.3v-25.3c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v25.3l-7.1-8.3c-.7-.7-1.7-.7-2.4 0s-.7 1.7 0 2.4l10 11.6z"></path>
+                    </svg>
+    
+                    <p style="margin: 0; padding: 0;">Drag and drop the WINTER.EXE or SUMMER.EXE file here, or click to select file</p>
+                    <p style="margin: 0; padding: 15px 0;">All processing happens in the browser, no data is uploaded</p>
+                </label>
+            </div>
+
+            <div style="min-height: 110px;">
+                <div id="log" style="margin: 16px; padding: 8px;"></div>
+
+                <a style="display: none; padding: 8px; margin: 16px; border: 1px solid #888;" id="download-btn" href="">
+                    Download
+                </a>
+            </div>
+        </div>
+        <div style="flex: 1;"></div>
+    </div>
+</body>
+
+</html>
