@@ -3,6 +3,8 @@ layout: base
 title: "The hidden copy protection checks for Summer Challenge"
 ---
 
+# The hidden copy protection checks for Summer Challenge
+
 Similar to [its predecessor](../../index.md), Summer Challenge also uses hiddden copy protection checks throgout the game which trigger sublte gameplay alterations to mess with you if you didn't successfully pass the code wheel copy protection check.
 
 ### Kayak
