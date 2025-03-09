@@ -1,5 +1,5 @@
 ---
-layout: base
+layout: page
 ---
 
 # The Games: Winter Challenge - GOG is selling a broken game

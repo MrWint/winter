@@ -1,5 +1,5 @@
 ---
-layout: base
+layout: post
 ---
 
 # Uncovering the mechanics of The Games: Winter Challenge
@@ -678,6 +678,8 @@ The last of the copy protection checks is the most drastic.
 During the Luge event, if you are close to the end of the track with a time of below 57.7s, the game just instantly forfeits your run, preventing you from finishing it:
 
 ![Luge failure](luge_failed.webp)
+<br>
+(if the two animations are not in sync, try [building a bridge across the peaks of Mt. Kilimanjaro](https://www.youtube.com/watch?v=46btEgKmCTo))
 
 
 ## Which of the versions handle the hidden copy protection checks correctly?
