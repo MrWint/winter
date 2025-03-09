@@ -1,7 +1,9 @@
 ---
 layout: base
-title: Uncovering the mechanics of The Games&#58; Winter Challenge
+title: "Uncovering the mechanics of The Games: Winter Challenge"
 ---
+
+# Uncovering the mechanics of The Games: Winter Challenge
 
 I've recently rediscovered an old game called "The Games: Winter Challenge", a Winter Olympics sports game developed by MindSpan and published by Accolade in 1991 for DOS and Sega Genesis.
 I had the DOS version of the game when growing up, so when I was randomly reminded of its existence, I was driven by a mix of nostaliga and curiosity to dig it up again.
