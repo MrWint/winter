@@ -1,6 +1,6 @@
 ---
 layout: base
-title: Uncovering the mechanics of The Games: Winter Challenge
+title: "Uncovering the mechanics of The Games: Winter Challenge"
 ---
 
 I've recently rediscovered an old game called "The Games: Winter Challenge", a Winter Olympics sports game developed by MindSpan and published by Accolade in 1991 for DOS and Sega Genesis.
@@ -630,7 +630,7 @@ More specifically, beyond a distance of 86.7m, the game won't recognize you pres
 ![Ski jump success](ski_jump_success.webp)
 ![Ski jump failure](ski_jump_failed.webp)
 <br>
-(if the two animations are not in sync, try reloading this page)
+(if the two animations are not in sync, try reloading this page in a new tab)
 
 ### Speed Skating
 
@@ -639,7 +639,7 @@ This is the second very obvious change: In the third lap in speed skating, the g
 ![Speed skating success](speed_skating_success.webp)
 ![Speed skating failure](speed_skating_failed.webp)
 <br>
-(if the two animations are not in sync, try reloading this page)
+(if the two animations are not in sync, try reloading this page in a new tab)
 
 ### Biathlon
 
@@ -649,7 +649,7 @@ If the check fails, it will move your shot by a random amount to the top right, 
 ![Biathlon success](biathlon_success.webp)
 ![Biathlon failure](biathlon_failed.webp)
 <br>
-(if the two animations are not in sync, try reloading this page)
+(if the two animations are not in sync, try reloading this page in a new tab)
 
 ### Downhill
 
@@ -659,7 +659,7 @@ It is activated partway into the run, and if it fails it changes the physics beh
 ![Downhill success](downhill_success.webp)
 ![Downhill failure](downhill_failed.webp)
 <br>
-(if the two animations are not in sync, try reloading this page)
+(if the two animations are not in sync, try reloading this page in a new tab)
 
 ### Bobsled
 
@@ -669,7 +669,7 @@ When the copy protection check fails, after the first couple of turns, the physi
 ![Bobsled success](bobsled_success.webp)
 ![Bobsled failure](bobsled_failed.webp)
 <br>
-(if the two animations are not in sync, try reloading this page)
+(if the two animations are not in sync, try reloading this page in a new tab)
 
 ### Luge
 

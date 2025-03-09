@@ -1,6 +1,6 @@
 ---
 layout: base
-title: The Games: Winter Challenge - GOG is selling a broken game
+title: "The Games: Winter Challenge - GOG is selling a broken game"
 ---
 
 > This is a summary of what the game is and how it is broken. If you want all the gory technical details, you can find them in the [detailed write-up](writeup/writeup.md).
@@ -33,7 +33,7 @@ More specifically, beyond a distance of 86.7m, the game won't recognize you pres
 ![Ski jump success](writeup/ski_jump_success.webp)
 ![Ski jump failure](writeup/ski_jump_failed.webp)
 <br>
-(if the two animations are not in sync, try reloading this page)
+(if the two animations are not in sync, try reloading this page in a new tab)
 
 ### Speed Skating
 
@@ -42,7 +42,7 @@ This is the second very obvious change: In the third lap in Speed Skating, the g
 ![Speed skating success](writeup/speed_skating_success.webp)
 ![Speed skating failure](writeup/speed_skating_failed.webp)
 <br>
-(if the two animations are not in sync, try reloading this page)
+(if the two animations are not in sync, try reloading this page in a new tab)
 
 ### Biathlon
 
@@ -52,7 +52,7 @@ If the check fails, it will move your shot by a random amount to the top right, 
 ![Biathlon success](writeup/biathlon_success.webp)
 ![Biathlon failure](writeup/biathlon_failed.webp)
 <br>
-(if the two animations are not in sync, try reloading this page)
+(if the two animations are not in sync, try reloading this page in a new tab)
 
 ### Downhill
 
@@ -62,7 +62,7 @@ It is activated partway into the run, and if it fails it changes the physics beh
 ![Downhill success](writeup/downhill_success.webp)
 ![Downhill failure](writeup/downhill_failed.webp)
 <br>
-(if the two animations are not in sync, try reloading this page)
+(if the two animations are not in sync, try reloading this page in a new tab)
 
 ### Bobsled
 
@@ -72,7 +72,7 @@ When the copy protection check fails, after the first couple of turns, the physi
 ![Bobsled success](writeup/bobsled_success.webp)
 ![Bobsled failure](writeup/bobsled_failed.webp)
 <br>
-(if the two animations are not in sync, try reloading this page)
+(if the two animations are not in sync, try reloading this page in a new tab)
 
 ### Luge
 
