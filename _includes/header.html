@@ -5,7 +5,7 @@
         for(let i=0; i<images.length; i++) {
             const originalSrc = images[i].src;
             images[i].src = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
-            requestAnimationFrame(() => { setTimeout(() => { images[i].src = originalSrc; }); });
+            setTimeout(() => { images[i].src = originalSrc; }, 100);
         }
     }
 
