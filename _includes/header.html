@@ -5,8 +5,8 @@
         const images = document.getElementsByTagName("img");
         for(let i=0; i<images.length; i++) {
             const originalSrc = images[i].src;
-            images[i].src = "";
-            requestAnimationFrame(() => { images[i].src = originalSrc; })
+            images[i].src = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
+            setTimeout(() => { images[i].src = originalSrc; }, 100)
         }
     }
 
