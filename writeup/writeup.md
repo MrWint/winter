@@ -1010,8 +1010,8 @@ With this, the game's copy protection is completely defeated, with no adverse ef
 
 ## Help, I have a broken version of the game!
 
-In case you have bought this game from GOG or have one of the many other broken versions out there, I have created a tool to fix the game for you.
-You can go [here](https://mrwint.github.io/winter/patcher/index.html) and use the tool to patch your binary to remove the hidden copy protection checks (as well as the debugger and code wheel checks themselves in case they are not removed already), so you can enjoy this game without any limitations.
+In case you have bought this game from GOG or have one of the many other broken versions out there, I have created a [tool to fix the game for you](https://mrwint.github.io/winter/patcher/index.html).
+You can use the tool to patch your binary to remove the hidden copy protection checks (as well as the debugger and code wheel checks themselves in case they are not removed already), so you can enjoy this game without any limitations.
 
 
 ## Conclusion - What about creating the perfect ski jump?

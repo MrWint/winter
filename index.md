@@ -86,8 +86,8 @@ During the Luge event, if you are close to the end of the track with a time of b
 
 ## Help, I have a broken version of the game!
 
-In case you have bought this game from GOG or have one of the many other broken versions out there, I have created a tool to fix the game for you.
-You can go [here](patcher/index.html) and use the tool to patch your binary to remove the hidden copy protection checks (as well as the debugger and code wheel checks themselves in case they are not removed already), so you can enjoy this game without any limitations.
+In case you have bought this game from GOG or have one of the many other broken versions out there, I have created a [tool to fix the game for you](https://mrwint.github.io/winter/patcher/index.html).
+You can use the tool to patch your binary to remove the hidden copy protection checks (as well as the debugger and code wheel checks themselves in case they are not removed already), so you can enjoy this game without any limitations.
 
 
 
@@ -100,5 +100,5 @@ That game re-uses a lot of the same code, including for the code wheel check and
 
 The tool mentioned above is also able to fix this game as well.
 
-If you are interested in what the gameplay alterations look like for that game, [go here](writeup/summer/summer_diffs.md).
+If you are interested in what the gameplay alterations look like for that game, I created a similar [list of hidden copy protection checks](writeup/summer/summer_diffs.md).
 
