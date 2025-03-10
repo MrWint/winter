@@ -5,7 +5,7 @@ title: "The hidden copy protection checks for Summer Challenge"
 
 Similar to [its predecessor](../../index.md), Summer Challenge also uses hiddden copy protection checks throgout the game which trigger sublte gameplay alterations to mess with you if you didn't successfully pass the code wheel copy protection check.
 
-If you just want to fix your copy of the game, you can use the [online patcher](patcher/index.html).
+If you just want to fix your copy of the game, you can use the [online patcher](https://mrwint.github.io/winter/patcher/index.html).
 
 ### Kayak
 
