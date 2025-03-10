@@ -5,7 +5,7 @@
         for(let i=0; i<images.length; i++) {
             const originalSrc = images[i].src;
             images[i].src = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
-            setTimeout(() => { images[i].src = originalSrc; }, 100);
+            requestAnimationFrame(() => { setTimeout(() => { images[i].src = originalSrc; }); });
         }
     }
 
@@ -13,7 +13,12 @@
         const links = document.getElementsByTagName("a");
         for(let i=0; i<links.length; i++) {
             if (!links[i].href) {
-                links[i].addEventListener("click", reloadAnimations, false);
+                if (navigator.userAgent.toLowerCase().includes('firefox')) {
+                    // Reloading animations doesn't work in Firefox: https://bugzilla.mozilla.org/show_bug.cgi?id=129986
+                    links[i].remove();
+                } else {
+                    links[i].addEventListener("click", reloadAnimations, false);
+                }
             }
         }
     });
