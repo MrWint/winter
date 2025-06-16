@@ -4,16 +4,16 @@ title: "Uncovering the mechanics of The Games: Winter Challenge"
 ---
 
 I've recently rediscovered an old game called "The Games: Winter Challenge", a Winter Olympics sports game developed by MindSpan and published by Accolade in 1991 for DOS and Sega Genesis.
-I had the DOS version of the game when growing up, so when I was randomly reminded of its existence, I was driven by a mix of nostaliga and curiosity to dig it up again.
+I had the DOS version of the game when growing up, so when I was randomly reminded of its existence, I was driven by a mix of nostalgia and curiosity to dig it up again.
 
 ![Animation of the game's title screen](winter_titlescreen.webp)
 
-Having grown up to become a computer scientist, I was not as much insterested in replaying it (though hearing the iconic music again was fun), but much more how it worked under the hood.
+Having grown up to become a computer scientist, I was not as much interested in replaying it (though hearing the iconic music again was fun), but much more how it worked under the hood.
 I had spent hours as a kid playing especially the ski jumping event, trying to reach the elusive mark of 100 meters, without success, and was determined to find out not only whether it was possible to achieve, but also what the theoretical optimum would be.
-Conveniently, the game features a replay system that allows you to save and rewatch past attempts, which opens up great opportunities for creating a TAS and manufacture a perfect replay file, and push the game to its limts.
+Conveniently, the game features a replay system that allows you to save and rewatch past attempts, which opens up great opportunities for creating a TAS and manufacture a perfect replay file, and push the game to its limits.
 
 My initial plan of attack was simple: Find a copy of the game, crack it open in Ghidra, disassemble it to find out how the ski jumping works, and optimize based on the discovered mechanics.
-As it turned out, each step of this plan was way more involved than anticipated, and created more questions along the way that demanded answers, opening up a rabbit hole of early 90s video game development intricasies.
+As it turned out, each step of this plan was way more involved than anticipated, and created more questions along the way that demanded answers, opening up a rabbit hole of early 90s video game development intricacies.
 This write-up will take you along on this ride of discovery, learning about how DOS-based programs worked, how video video game developers worked around the hardware limitations, how early copy protection worked, and how GOG sells you a broken version of the game (as of March 2025).
 
 
@@ -52,7 +52,7 @@ And to complete the mess, the original game actually offers an option to install
 The installation does not work like you might expect, just copying files from floppy to disk; instead, it actually creates a whole new `WINTER.EXE` executable each time.
 During installation, you can choose different options, including which graphics modes to support, and a "fast loading" mode which according to the manual makes the game load faster at the cost of additional hard drive space, and each combination of the options creates a different executable for you.
 
-> **Side investigaton 3:** How are these different versions of the executable being created, and how do they differ?
+> **Side investigation 3:** How are these different versions of the executable being created, and how do they differ?
 
 So taking stock and comparing all different acquired versions, there are a lot of distinct binaries:
 
@@ -72,7 +72,7 @@ Furthermore, there are three different stand-alone cracks:
 
 ## Cracking the binary open - obfuscation and memory constraints
 
-So to start somewhere, I loaded up the floppy version in Ghidra, and was immediately underwhelmed. It only managed to analyze a tiny fraction of the inital code, with most of it remaining binary blobs.
+So to start somewhere, I loaded up the floppy version in Ghidra, and was immediately underwhelmed. It only managed to analyze a tiny fraction of the initial code, with most of it remaining binary blobs.
 Opening the same file in IDA revealed much of the same picture, but IDA also provided accompanying warnings: It thinks the binary may be packed, and there are lots of unused bytes beyond the end of the code.
 I figured that the binary must be packed or obfuscated in some way, and the tiny bit of initial code is the routine to unpack the rest of the binary.
 
@@ -87,7 +87,7 @@ We just want to unpack the binary to get to the good stuff, and there are plenty
 The packing and unpacking is its own arms race microcosm, with protectors to prevent the unpacking, and more sophisticated unpackers to do it anyway, but luckily no additional unpacking protections were employed for this game.
 
 The resulting unpacked binary has two surprises right off the bat: Firstly it is only 168kB in size, much smaller than the original executable despite extraction presumably making it grow in size, and secondly the result of unpacking it is identical across all different versions of the game.
-This gives us a hint for how the game is structured: It contains a chunk of business logic, which is what we have unpacked and is the same across versions, and then it contains some resrouces, like sprites and sounds, which are included into the executable file and loaded out of it at runtime.
+This gives us a hint for how the game is structured: It contains a chunk of business logic, which is what we have unpacked and is the same across versions, and then it contains some resources, like sprites and sounds, which are included into the executable file and loaded out of it at runtime.
 This assumption is supported by the fact that the extracted binary actually still works properly as long as it is placed beside the original `WINTER.EXE` binary to load the assets out of.
 
 But it also is somewhat surprising for the two cracked versions of the binary, I would have expected those to contain modified business logic in order to facilitate skipping the code wheel check.
@@ -124,7 +124,7 @@ It means that the unpacked binary is in fact not all the business logic that exi
 Disassemblers don't understand these overlays, can't detect them or automatically disassemble them, so the work to understand the business logic will be more manual than planned.
 In order to progress further, we need to find and extract all these overlays, to get a complete picture of the game's code.
 
-By finding where the interrupt 3fh is installed at the start of the program, we can identfy the overlay manager routine which is called each time an overlay is needed.
+By finding where the interrupt 3fh is installed at the start of the program, we can identify the overlay manager routine which is called each time an overlay is needed.
 
 ![Installing the int3fh](int3f_initialization.png)
 
@@ -162,7 +162,7 @@ Watching those while the game starts up reveals that the game is seeking through
     4205455 DEBUG FILES:Reading 22 bytes from WINTER.EXE 
     ...
 
-These are likely the start of the resources, and when checking the binary at that location we find that the secion begins with two bytes spelling out `MB`, similar to how the executables themselves start with an `MZ` magic number.
+These are likely the start of the resources, and when checking the binary at that location we find that the section begins with two bytes spelling out `MB`, similar to how the executables themselves start with an `MZ` magic number.
 Looking for this magic number in the disassembly brings us directly to the routine which parses out the structure of the embedded resources.
 
     seg000:6D83                 sub     ax, ax                                 ; sets ax to 0
@@ -260,11 +260,11 @@ Just from the names, we can assume that the `COD` files contain the actual machi
 When looking at the different versions of the installed game, we can see that the resources they are bundled with are indeed different.
 This finally resolves the first of our side mysteries:
 
-> **Side investigaton 3 complete!**
+> **Side investigation 3 complete!**
 > Depending on the chosen graphics mode, more or fewer assets are included, and each asset can come in two variants, the uncompressed version (e.g. `TITLE.MGS`), and a compressed version (e.g. `TITLE.PMG`), indicated by prepending a `P` to its extension.
 > The "fast loading" versions of the installation bundle the uncompressed resources, while the floppy version contains the packed versions, providing a trade-off between speed of loading the assets at runtime and the size they take up on disk.
 
-It's difficult to imagine nowadays, but hard drive space was a serious concern back then, and the additional kilobytes the unpacked asstes take up could matter a lot.
+It's difficult to imagine nowadays, but hard drive space was a serious concern back then, and the additional kilobytes the unpacked assets take up could matter a lot.
 
 However, it seems that even in the fast-loading versions, not all assets are actually uncompressed.
 Specifically some of the code overlays stay packed even there, presumably as a means to keep them obfuscated even when fast loading is selected during installation.
@@ -275,7 +275,7 @@ You can find a JS re-implementation of it [here](https://github.com/MrWint/winte
 Conveniently, the game also provides us with a fairly easy way to check whether we extracted all the resources correctly.
 It turns out the game is more flexible with where it tries to load the resources from, and not only checks the embedded resources in the binary, but also checks for individual files of the same name, in the root folder or a subfolder called "ART".
 As long as the resource can be found in any of these places, it will use it.
-So by writing a program to extract all these recources into their own files and placing them in the ART subfolder, and then manually modifying the binary to delete all embedded resources, we can make the game use our extracted assets instead.
+So by writing a program to extract all these resources into their own files and placing them in the ART subfolder, and then manually modifying the binary to delete all embedded resources, we can make the game use our extracted assets instead.
 Doing this and running the game, it is indeed still working, confirming that our extracted resources are accurate and we're not missing anything else coming from the binary file.
 
 
@@ -305,7 +305,7 @@ And finally, placing it after the stack, where they are typically loaded using t
 >
 > So allocating memory really didn't mean much since it was all yours anyway, and programs typically started out with "owning" the entire memory space.
 > DOS still provided an allocator, but in order to use it your program first needed to deallocate some of the memory space and give it back to DOS, so that new blocks can be allocated in this space.
-> This game does this, and in order to determine how much it can free up, it performs some calcuations based on the addresses it happens to be loaded into.
+> This game does this, and in order to determine how much it can free up, it performs some calculations based on the addresses it happens to be loaded into.
 
 So by just appending the overlays, we would interfere with the allocated memory, and while we could try to patch the program to avoid this, it may cause other unexpected side effects.
 
@@ -326,7 +326,7 @@ The game contains special logic to handle both cases when it loads the overlays,
 We also need to append all the relocation information for the overlays to the relocation table of the main program, because the new combined binary can of course still be loaded into memory at any location, so the addresses need to be adjusted accordingly.
 
 What we end up with is a completely self-contained binary, which does not need to load any more overlays to work, and which doesn't contain any overlay interrupts anymore.
-Together with the extracted art assets in separate files, we now have an unpacked and unobfuscated, still perfactly playable, version of the game.
+Together with the extracted art assets in separate files, we now have an unpacked and unobfuscated, still perfectly playable, version of the game.
 
 It's worth noting that this was not guaranteed to actually work.
 Replacing the overlay interrupts with function calls has the same behavior, but the overlay manager itself which is now sidestepped has additional side effects which could be critical for the game to work.
@@ -363,7 +363,7 @@ That anti-debugger check consists of two parts.
 The first and simplest one is that the game checks for the existence of known debuggers in its path.
 It tries to open three files with the file names `NU-MEGA`, `SOFTICE1` and `TDHDEBUG`, and if any of these exist, the game will not let you get past the main menu.
 As you might guess, these names correspond to popular DOS-based debuggers, so if it detects you are using any of these, it will refuse operation.
-The names of these files is obfuscated in the code using the xor operation, similar to the resource file names, and the check is buried inbetween other code initializing the intro sequence, but by logging the file IO the program performs they are easy to spot.
+The names of these files is obfuscated in the code using the xor operation, similar to the resource file names, and the check is buried in between other code initializing the intro sequence, but by logging the file IO the program performs they are easy to spot.
 
     seg001:039C check_for_known_debuggers:
     seg001:039C                 push    bp                                ; save base pointer register on the stack, to restore it later
@@ -403,7 +403,7 @@ When we're trying to follow where this debugger check flag is used, we see it is
 Here, the game also starts throwing misdirections at us to make deciphering it harder:
 
     seg010:0000 propagate_debugger_check_1:
-    seg010:0000                 push    bp              ; save bp to stack, starndard preamble for a function call
+    seg010:0000                 push    bp              ; save bp to stack, standard preamble for a function call
     seg010:0001                 mov     bp, sp          ; set base pointer to current stack pointer. This means all arguments are some fixed offset from bp
     seg010:0003                 sub     sp, 8           ; make space on stack for local variables
     seg010:0006                 mov     ah, 2Ch
@@ -418,7 +418,7 @@ Here, the game also starts throwing misdirections at us to make deciphering it h
     ...
     seg010:0029 ; ---------------------------------------------------------------------------
     seg010:0029 process_current_time_result:
-    seg010:0029                 push    bp              ; save bp to stack, starndard preamble for a function call
+    seg010:0029                 push    bp              ; save bp to stack, standard preamble for a function call
     seg010:002A                 mov     bp, sp          ; set base pointer to current stack pointer. This means all arguments are some fixed offset from bp
     seg010:002C                 mov     bx, 0Fh         ; bx = 15 (?)
     seg010:002F                 mov     cx, detected_debugger_binary
@@ -514,7 +514,7 @@ That was the appetizer though, the main course is still to come and it's a doozy
 
 The code wheel protection is in principle less technical and more straight-forward: The game reads the number you enter, it then looks up what the answer should have been, and checks whether they match.
 Thanks to our fully unpacked executable, finding where this check is made is as simple as finding the error message ("That ticket number is incorrect.  Try again.") in the binary, and looking for references to it, places in the code where it is used.
-Placing debugger breakpoints on this function and stepping through it lets us identfy which sections are roughly responsible for which parts of the process.
+Placing debugger breakpoints on this function and stepping through it lets us identify which sections are roughly responsible for which parts of the process.
 
 Through this process, we can identify the heart of the protection: a function which takes the randomly generated code wheel configuration and the entered ticket number as an input, and decides whether it was entered correctly or not.
 It doesn't do any assembly trickery, but it contains some unnecessary operations as misdirection.
@@ -555,7 +555,7 @@ We can translate it to some more compact pseudo code:
 Apart from the random memory allocation and deallocation providing some red herrings, the actual checking logic is fairly straight-forward and directly simulates how the physical code wheel functions.
 It considers how the discs are rotated, and then checks which number will be visible on the wheel based on a table of all the possible answers.
 
-> **Side investigaton 1 complete!**
+> **Side investigation 1 complete!**
 
 But besides the immediate check, it also places the ticket number into 5 different places in memory.
 Those 5 memory locations are where it gets interesting, because looking at where they are used, they all re-appear in the same location:
@@ -604,13 +604,13 @@ Those 5 memory locations are where it gets interesting, because looking at where
     seg015:0089                 pop     si
     seg015:008A                 retf
 
-In this code snippet, the 5 copies of the ticket number are modified in various ways to create 6 new values derived from it, with some arbitrary opertaions to make them all different.
+In this code snippet, the 5 copies of the ticket number are modified in various ways to create 6 new values derived from it, with some arbitrary operations to make them all different.
 Each of these six values is used some specific place elsewhere in the code, where it is compared against some reference value.
 If we try to find out where those reference values come from, what we find it a second copy of the code wheel answer checking routine from above, complete with a second instance of the table containing all correct answers!
 The only difference between the two is that is uses a different value to xor the ticket numbers with, using `0xc514` instead of `0xa283`.
 Afterwards, the same arbitrary operations are applied to them to create the 6 reference values.
 
-> **Side investigaton 2 complete!**
+> **Side investigation 2 complete!**
 >
 > The hidden copy protection checks are real!
 > The game performs more hidden code wheel checks throughout the game, in each of these 6 locations.
@@ -794,7 +794,7 @@ It's only 366 bytes in size, and when we disassemble it we see this (with some u
 
 
 The crack works by overriding interrupt handlers and injecting its own code into them.
-It first overrides the main DOS interrupt `int 21h`, and looks for a specfic interrupt the game triggers during initialization, at which point it overrides the overlay manager interrupt `int 3fh` as well.
+It first overrides the main DOS interrupt `int 21h`, and looks for a specific interrupt the game triggers during initialization, at which point it overrides the overlay manager interrupt `int 3fh` as well.
 The reason it needs to do this in two steps is that the `int 3fh` interrupt is only installed during runtime, so it can only be overridden afterwards.
 Why it is looking for that specific random interrupt is beyond me, since there were way more obvious targets, like the interrupt that actually installs the `int 3fh` handler.
 
@@ -860,7 +860,7 @@ It checks the same register state, and it even uses the same weirdly specific `i
 
 If I were to guess, I'd say someone has taken some "inspiration" from the "The Humble Guys" crack when creating this version.
 It's also just shoddily bolted together, with snippets of unused code everywhere.
-It looks like someone repurposed some other similarly structured crack, and insterted the specifics of the "The Humble Guys" crack into it to make it work for this game.
+It looks like someone repurposed some other similarly structured crack, and inserted the specifics of the "The Humble Guys" crack into it to make it work for this game.
 
 It of course therefore also has the same problem: it trips the hidden copy protections and the game is broken.
 
@@ -1005,7 +1005,7 @@ This way, the code wheel check succeeds, and all the hidden code wheel checks th
 
 With this, the game's copy protection is completely defeated, with no adverse effects during gameplay.
 
-> **Side investigaton 4 complete!**
+> **Side investigation 4 complete!**
 
 
 ## Help, I have a broken version of the game!
