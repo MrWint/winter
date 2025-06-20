@@ -112,6 +112,7 @@ Modifying the values at 0x102 has a similar result, but only affects the positio
 
 The second block of data varies in length and content between files, and appears to encode the inputs recorded during the attempt.
 It is always a multiple of 4 bytes long, and there's a noticeable repeating pattern every 4 bytes in the data, suggesting that each block of 4 bytes encodes an input in some way.
+
 This lets us build some mental model of how the replay system works: A replay consists of two parts, a savestate which determines the initial game state, and a sequence of inputs which then tells the game how to behave over time.
 The game runs the simulation just like when playing the game, but instead of using the player's inputs it takes the pre-recorded inputs from the file to reproduce the previous attempt.
 The initial state is mostly identical between replay files because the initial state of a ski jump is always the same.
@@ -173,10 +174,10 @@ Starting at where the file is being opened, the game allocates blocks of memory 
 The savestate data is handled in multiple chunks which are loaded from and into different places in memory, effectively allowing to save and load a savestate.
 Where those memory regions are differs by discipline, and for the Ski Jump there are 4 chunks which make up the savestate:
 
--   [0x7a3c - 0x7a7e] (0x42 bytes) - Contains the player data, like the color of the suit (can also contain more data like the chosen name and flag in tournament mode)
--   [0x69f6 - 0x69fa] (4 bytes) - Contains the RNG seed
--   [0x43f8 - 0x4504] (0x10c byte) - Presumably contains ski jump state data, including the initial ski angle
--   [0x4504 - 0x455e] (0x5a byte) - Presumably contains also ski jump state data
+-   `[0x7a3c - 0x7a7e]` (0x42 bytes) - Contains the player data, like the color of the suit (can also contain more data like the chosen name and flag in tournament mode)
+-   `[0x69f6 - 0x69fa]` (4 bytes) - Contains the RNG seed
+-   `[0x43f8 - 0x4504]` (0x10c byte) - Presumably contains ski jump state data, including the initial ski angle
+-   `[0x4504 - 0x455e]` (0x5a byte) - Presumably contains also ski jump state data
 
 This gives us a direct mapping from the data we see in the replay file to the memory addresses we see in the game's code.
 It also gives us hints when reading the game's code as to which variables will be associated with the ski jump event: If they are part of the save state, they are apparently important.
@@ -419,7 +420,7 @@ Looking over some more functions like this one, it eventually dawned on me what 
     seg016:2616                 pop     bp
     seg016:2617                 retf
 
-This method appears to calculate the length of a 3-dimensional vector, sqrt(x^2 + y^2 + z^2).
+This method appears to calculate the length of a 3-dimensional vector, `sqrt(x^2 + y^2 + z^2)`.
 Notably in this function, no shift is performed after the multiplication.
 
 What is going on here is that the game is using 16-bit fixed-point arithmetic.
@@ -498,18 +499,14 @@ It proves that the whole setup works, that the simulation is accurate beyond the
 All the pieces are in place, the only thing left to do is to use the simulation to optimize the jump and find the farthest possible distance.
 
 
-## Optimizing the search
+## Optimizing the search - Simplifying and cutting off bad options
 
 The initial search returned a fairly poor result as seen above, and there are multiple contributing factors which led to this.
 For one, the search space is actually very big: there are ~80 frames of sliding down the ramp and another ~70 frames of controlling the air movement, where at every frame you have 7 options for directional movement, on top of the timing for lift-off and landing.
 Secondly, there is the RNG which creates 2^21 different wind patterns, adding to the size of the search space.
 Lastly, it is hard to predict which actions early in the attempt actually lead to a longer jump distance later, so picking the most promising candidates based on factors like distance traveled or current velocity may easily discard good options early.
 
-
-### Simplifying and cutting off bad options
-
 One way to reduce the size of the search space is to cut paths which we can be sure will not lead to the best distances, using knowledge about how the simulation works.
-
 Since the jumper follows simple [projectile motion](https://en.wikipedia.org/wiki/Projectile_motion) while airborne, it is obvious that we want to achieve the highest speeds possible to go farther, and that means reducing drag as much as possible.
 Let's take a look at the function which calculates the drag:
 
