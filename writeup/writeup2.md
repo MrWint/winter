@@ -671,7 +671,7 @@ The idea is that by staying on the ramp for an additional frame, you could delay
 However, it turns out that the alignment with the ramp is pretty much perfect already out-of-the-box, with the last frame on the ramp ending very close to the edge.
 So there is no more potential for optimization like this, and the result we have is as good as it's going to get.
 
-If you want to load up the replay in your own game, you can find it [here](https://github.com/MrWint/winter/replays/1138.RP5).
+If you want to load up the replay in your own game, you can find it [here](https://github.com/MrWint/winter/blob/main/replays/1138.RP5).
 
 ## Conclusion
 
