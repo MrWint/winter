@@ -1,0 +1,268 @@
+struct HuffmanTree {
+  weights: [u16; 627],
+  left_child_or_value: [usize; 627],
+  value_to_index: [usize; 314],
+  parent_index: [usize; 627],
+}
+impl HuffmanTree {
+  fn new() -> HuffmanTree {
+    let mut weights = [0u16; 627];
+    let mut left_child_or_value = [0usize; 627];
+    let mut value_to_index = [0usize; 314];
+    let mut parent_index = [0usize; 627];
+
+    for i in 0..314 {
+      weights[i] = 1;
+      left_child_or_value[i] = 627 + i;
+      value_to_index[i] = i;
+    }
+    let mut di = 0;
+    for bx in 314..627 {
+      weights[bx] = weights[di] + weights[di+1];
+      left_child_or_value[bx] = di;
+      parent_index[di] = bx;
+      parent_index[di+1] = bx;
+      di += 2;
+    }
+    parent_index[626] = 0;
+
+    HuffmanTree { weights, left_child_or_value, value_to_index, parent_index }
+  }
+  fn unpack_next_value(&mut self, stream: &mut BitReadStream) -> usize {
+
+    // find value
+    let mut si = self.left_child_or_value[626];
+    while si < 627 {
+      si = self.left_child_or_value[si + if stream.read_bit() { 1 } else { 0 }];
+    }
+    let value = si - 627;
+
+    self.add_weights_and_rebalance(value);
+
+    return value;
+  }
+
+  fn add_weights_and_rebalance(&mut self, value: usize) {
+    if self.weights[626] == 0xfff0 {
+      self.normalize_weights();
+    }
+    let mut index = self.value_to_index[value];
+    loop {
+      self.weights[index] += 1;
+      let mut swap_index = index;
+      while swap_index < 626 && self.weights[index] > self.weights[swap_index+1] {
+        swap_index += 1;
+      }
+      if swap_index != index {
+        self.weights.swap(index, swap_index);
+        let di = self.left_child_or_value[index];
+        if di < 627 {
+          self.parent_index[di] = swap_index;
+          self.parent_index[di+1] = swap_index;
+        } else {
+          self.value_to_index[di-627] = swap_index;
+        }
+        let di = self.left_child_or_value[swap_index];
+        if di < 627 {
+          self.parent_index[di] = index;
+          self.parent_index[di+1] = index;
+        } else {
+          self.value_to_index[di-627] = index;
+        }
+        self.left_child_or_value.swap(index, swap_index);
+      }
+      index = self.parent_index[swap_index];
+      if index == 0 { break; }
+    }
+  }
+
+  fn normalize_weights(&mut self) {
+    let mut si = 0;
+    for bx in 0..627 {
+      if self.left_child_or_value[bx] >= 627 {
+        self.weights[si] = (self.weights[bx] + 1) / 2;
+        self.left_child_or_value[si] = self.left_child_or_value[bx];
+        si += 1;
+      }
+    }
+    assert!(si == 314);
+    let mut bx = 0;
+    while si < 627 {
+      let new_weight = self.weights[bx] + self.weights[bx+1];
+      let mut di = si;
+      while new_weight < self.weights[di-1] {
+        self.weights[di] = self.weights[di-1];
+        self.left_child_or_value[di] = self.left_child_or_value[di-1];
+        di -= 1;
+      }
+      self.weights[di] = new_weight;
+      self.left_child_or_value[di] = bx;
+
+      bx += 2;
+      si += 1;
+    }
+
+    for bx in 0..627 {
+      let si = self.left_child_or_value[bx];
+      if si < 627 {
+        self.parent_index[si] = bx;
+        self.parent_index[si+1] = bx;
+      } else {
+        self.value_to_index[si - 627] = bx;
+      }
+    }
+  }
+}
+
+struct BitReadStream<'a> {
+  buf: &'a [u8],
+  bit_position: usize,
+}
+impl <'a> BitReadStream<'a> {
+  fn new(buf: &'a [u8]) -> Self {
+    Self {
+      buf,
+      bit_position: 0,
+    }
+  }
+  fn read_bit(&mut self) -> bool {
+    assert!(self.bit_position < self.buf.len() * 8);
+    let b = (self.buf[self.bit_position >> 3] >> (7-(self.bit_position&7))) & 1 != 0;
+    self.bit_position += 1;
+    b
+  }
+  fn read_bits(&mut self, num_bits: usize) -> u8 {
+    assert!(num_bits > 0);
+    assert!(num_bits <= 8);
+    assert!(self.bit_position + num_bits <= self.buf.len() * 8);
+    let remaining_bits_in_current_byte = 8 - (self.bit_position & 7);
+    let mut b = (self.buf[self.bit_position >> 3] << (8 - remaining_bits_in_current_byte)) >> (8 - num_bits);
+    if num_bits > remaining_bits_in_current_byte {
+      b |= self.buf[(self.bit_position >> 3) + 1] >> (8 - (num_bits - remaining_bits_in_current_byte));
+    }
+    self.bit_position += num_bits;
+    b
+  }
+  fn bits_left(&self) -> usize {
+    self.buf.len() * 8 - self.bit_position
+  }
+}
+
+#[derive(Debug)]
+enum CompressionItem {
+  Literal(u8),
+  Lookback(u8, u16),
+}
+
+fn decode_bit_stream(bit_stream: &[u8], unpacked_length: usize) -> Vec<CompressionItem> {
+  let mut items = Vec::new();
+  let mut cur_length = 0;
+  let mut stream = BitReadStream::new(bit_stream);
+  let mut huffman = HuffmanTree::new();
+
+  while cur_length < unpacked_length {
+    let value = huffman.unpack_next_value(&mut stream);
+    if value < 256 {
+      items.push(CompressionItem::Literal(value as u8));
+      cur_length += 1;
+    } else {
+      let lookback = read_12bit_lookback(&mut stream) + 1;
+      let length = value - 253;
+      items.push(CompressionItem::Lookback(length as u8, lookback));
+      cur_length += length;
+    }
+  }
+
+  println!("finished decoding bitstream with {} bits left", stream.bits_left());
+  items
+}
+
+fn read_12bit_lookback(stream: &mut BitReadStream) -> u16 {
+  const UPPER_BITS: [u8; 256] = [
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+      0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+      0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+      0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+      0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+      0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09,
+      0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B,
+      0x0C, 0x0C, 0x0C, 0x0C, 0x0D, 0x0D, 0x0D, 0x0D, 0x0E, 0x0E, 0x0E, 0x0E, 0x0F, 0x0F, 0x0F, 0x0F,
+      0x10, 0x10, 0x10, 0x10, 0x11, 0x11, 0x11, 0x11, 0x12, 0x12, 0x12, 0x12, 0x13, 0x13, 0x13, 0x13,
+      0x14, 0x14, 0x14, 0x14, 0x15, 0x15, 0x15, 0x15, 0x16, 0x16, 0x16, 0x16, 0x17, 0x17, 0x17, 0x17,
+      0x18, 0x18, 0x19, 0x19, 0x1A, 0x1A, 0x1B, 0x1B, 0x1C, 0x1C, 0x1D, 0x1D, 0x1E, 0x1E, 0x1F, 0x1F,
+      0x20, 0x20, 0x21, 0x21, 0x22, 0x22, 0x23, 0x23, 0x24, 0x24, 0x25, 0x25, 0x26, 0x26, 0x27, 0x27,
+      0x28, 0x28, 0x29, 0x29, 0x2A, 0x2A, 0x2B, 0x2B, 0x2C, 0x2C, 0x2D, 0x2D, 0x2E, 0x2E, 0x2F, 0x2F,
+      0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F];
+  const ADDITIONAL_BITS: [u8; 256] = [
+      0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+      0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+      0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+      0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+      0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+      0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+      0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+      0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+      0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+      0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+      0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+      0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+      0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+      0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+      0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+      0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08];
+
+  let bx = stream.read_bits(8) as usize;
+  let upper_bits = (UPPER_BITS[bx] as u16) << 6;
+  let additional_bits = ADDITIONAL_BITS[bx] as usize - 2;
+  let middle_bits = (bx << additional_bits) as u16 & 0x3f;
+  let lower_bits = stream.read_bits(additional_bits) as u16;
+  upper_bits | middle_bits | lower_bits
+}
+
+fn apply_items(items: &[CompressionItem]) -> Vec<u8> {
+  let mut buf = Vec::new();
+
+  for item in items {
+    match item {
+      &CompressionItem::Literal(value) => buf.push(value),
+      &CompressionItem::Lookback(length, lookback) => {
+        assert!(lookback > 0);
+        let lookback = lookback as usize;
+        for _ in 0..length {
+          buf.push(if buf.len() >= lookback { buf[buf.len() - lookback] } else { 0x20 });
+        }
+      },
+    }
+  }
+
+  buf
+}
+
+#[allow(dead_code)]
+fn test_unpack_data(packed_file_name: &str, unpacked_file_name: &str) {
+  let data = unpack_data(&std::fs::read(packed_file_name).unwrap());
+
+  std::fs::write(unpacked_file_name, data).unwrap();
+}
+
+#[allow(dead_code)]
+fn unpack_assert(packed_file_name: &str, unpacked_file_name: &str) {
+  let data = unpack_data(&std::fs::read(packed_file_name).unwrap());
+  let reference_data = std::fs::read(unpacked_file_name).unwrap();
+
+  println!("Comparing {} with {}", packed_file_name, unpacked_file_name);
+  assert!(&data == &reference_data);
+}
+
+fn unpack_data(packed_data: &[u8]) -> Vec<u8> {
+  let unpacked_length = u32::from_le_bytes(packed_data[0..4].try_into().unwrap()) as usize;
+  let items = decode_bit_stream(&packed_data[4..], unpacked_length);
+  // println!("{:?}", items);
+
+  let unpacked_bytes = apply_items(&items);
+  assert!(unpacked_bytes.len() == unpacked_length);
+
+  unpacked_bytes
+}

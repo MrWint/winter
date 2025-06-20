@@ -96,7 +96,7 @@ By looking around some, we find suspicious interrupt calls to `int 3fh`.
 
 ![Instances of a mysterious interrupt 3fh](int3fh.png)
 
-> ### Side bar: Interrupts
+> ### Sidebar: Interrupts
 >
 > [Interrupts](https://en.wikipedia.org/wiki/Interrupt) are the main way DOS programs used to communicate with the operating system, analogous to today's [syscalls](https://en.wikipedia.org/wiki/System_call).
 > Whenever a program wants to interact with something outside it's own code, it would call an interrupt and ask DOS to perform that task for it, handing back control to the operating system temporarily, and resuming when it is complete.
@@ -108,7 +108,7 @@ By looking around some, we find suspicious interrupt calls to `int 3fh`.
 
 IDA provides a helpful comment to these, that this interrupt is typically used for calling an "Overlay manager".
 
-> ### Side bar: Overlays
+> ### Sidebar: Overlays
 >
 > [Overlaying](https://en.wikipedia.org/wiki/Overlay_(programming)) is a technique for loading additional pieces of code at runtime, where multiple such pieces, called overlays, can be swapped out in the same place in memory.
 > This was useful in programs of the time to save on RAM usage: DOS only allowed a maximum of 640kB of memory to be used by a program (aka [Conventional memory](https://en.wikipedia.org/wiki/Conventional_memory)), and large applications might themselves already be too big to fit all their code into that limit, not even considering any data.
@@ -1017,4 +1017,4 @@ You can use the tool to patch your binary to remove the hidden copy protection c
 ## Conclusion - What about creating the perfect ski jump?
 
 My original goal was to deconstruct the game mechanics, specifically for the ski jumping event, but that quest got so thoroughly side-tracked by all the copy protection related investigations that it moved somewhat into the background.
-Now that the copy protection mysteries are solved, I will be able to focus on that, and it will likely end up being its own write-up.
+Now that the copy protection mysteries are solved, I will be able to focus on that, and it will likely end up being its own write-up. [PART 2 IS HERE](writeup2.md)

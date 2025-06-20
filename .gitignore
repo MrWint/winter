@@ -1,0 +1,12 @@
+/target
+/vga
+/vgafast
+/summerfast
+/summerout
+/summeroverlay
+/overlay
+/out
+/memdump
+/SUMMER.EXE
+/WINTER.EXE
+/Cargo.lock
